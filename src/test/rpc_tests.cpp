@@ -20,7 +20,7 @@
 
 #include <rpc/blockchain.h>
 
-/*
+
 UniValue CallRPC(std::string args)
 {
     std::vector<std::string> vArgs;
@@ -40,7 +40,7 @@ UniValue CallRPC(std::string args)
         throw std::runtime_error(find_value(objError, "message").get_str());
     }
 }
-*/
+
 
 BOOST_FIXTURE_TEST_SUITE(rpc_tests, TestingSetup)
 
