@@ -62,16 +62,17 @@ void AppTests::appTests()
     }
 #endif
 
-    BasicTestingSetup test{CBaseChainParams::REGTEST, true}; // Create a temp data directory to backup the gui settings to
-    ECC_Stop(); // Already started by the common test setup, so stop it to avoid interference
-    LogInstance().DisconnectTestLogger();
+	fs::create_directories([] {
+        BasicTestingSetup test{CBaseChainParams::REGTEST}; // Create a temp data directory to backup the gui settings to
+        return GetDataDir() / "blocks";
+    }());
 
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);
     QScopedPointer<const NetworkStyle> style(NetworkStyle::instantiate(Params().NetworkIDString()));
     m_app.setupPlatformStyle();
     m_app.createWindow(style.data());
-    m_app.setTestMode();
+    //m_app.setTestMode();
     connect(&m_app, &BitcoinApplication::windowShown, this, &AppTests::guiTests);
     expectCallback("guiTests");
     m_app.baseInitialize();
@@ -81,7 +82,10 @@ void AppTests::appTests()
     m_app.exec();
 
     // Reset global state to avoid interfering with later tests.
+    LogInstance().DisconnectTestLogger();
     AbortShutdown();
+    UnloadBlockIndex(/* mempool */ nullptr);
+    WITH_LOCK(::cs_main, g_chainman.Reset());
     UnloadBlockIndex();
 }
 
