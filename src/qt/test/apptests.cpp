@@ -84,7 +84,7 @@ void AppTests::appTests()
     // Reset global state to avoid interfering with later tests.
     LogInstance().DisconnectTestLogger();
     AbortShutdown();
-    UnloadBlockIndex(/* mempool */ nullptr);
+    UnloadBlockIndex();
 }
 
 //! Entry point for BitcoinGUI tests.
