@@ -98,7 +98,7 @@ void RunTest(const TestVector& test)
         // Derive new keys
         CExtKey keyNew;
         BOOST_CHECK(key.Derive(keyNew, derive.nChild));
-        CExtPubKey pubkeyNew = keyNew.Neuter();
+        CExtPubKey pubkeyNew = keyNew.Neutered();
         if (!(derive.nChild & 0x80000000)) {
             // Compare with public derivation
             CExtPubKey pubkeyNew2;
