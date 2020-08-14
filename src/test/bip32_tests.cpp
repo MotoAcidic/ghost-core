@@ -75,8 +75,8 @@ void RunTest(const TestVector& test)
     std::vector<unsigned char> seed = ParseHex(test.strHexMaster);
     CExtKey key;
     CExtPubKey pubkey;
-    key.SetMaster(&seed[0], seed.size());
-    pubkey = key.Neuter();
+    key.SetSeed(seed.data(), seed.size());
+    pubkey = key.Neutered();
     for (const TestDerivation& derive : test.vDerive) {
         unsigned char data[74];
         key.Encode(data);
