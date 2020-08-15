@@ -16,8 +16,6 @@ std::vector<std::pair<uint256, CTransactionRef>> extra_txn;
 
 BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, TestingSetup)
 
-BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, TestingSetup)
-
 static CBlock BuildBlockTestCase() {
     CBlock block;
     CMutableTransaction tx;
