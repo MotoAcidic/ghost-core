@@ -234,7 +234,8 @@ UniValue masternode_outputs(const JSONRPCRequest& request)
 
     // Find possible candidates
     std::vector<COutput> vPossibleCoins;
-    pwallet->AvailableCoins(*locked_chain, vPossibleCoins, true, nullptr, 1000 * COIN, 1000 * COIN);
+    auto collateralAmount = Params().GetConsensus().nMasternodeCollateral;
+    pwallet->AvailableCoins(*locked_chain, vPossibleCoins, true, nullptr, collateralAmount, collateralAmount);
 
     UniValue obj(UniValue::VOBJ);
     for (const auto& out : vPossibleCoins) {

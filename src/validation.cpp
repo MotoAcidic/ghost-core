@@ -833,7 +833,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     // blocks
     if (!bypass_limits && !CheckFeeRate(nSize, nModifiedFees, state)) return false;
 
-    if (nAbsurdFee && nFees > nAbsurdFee)
+    if (!tx.IsEvoVersion() && nAbsurdFee && nFees > nAbsurdFee)
         return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false,
                 REJECT_HIGHFEE, "absurdly-high-fee",
                 strprintf("%d > %d", nFees, nAbsurdFee));
@@ -2489,6 +2489,9 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
 static int64_t nTimeCheck = 0;
 static int64_t nTimeForks = 0;
 static int64_t nTimeVerify = 0;
+static int64_t nTimeValueValid = 0;
+static int64_t nTimePayeeValid = 0;
+static int64_t nTimeProcessSpecial = 0;
 static int64_t nTimeConnect = 0;
 static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
@@ -3064,7 +3067,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                                    REJECT_INVALID, "bad-cb-amount");
 
         //! dash masternode layer tests/checks
-        int64_t nTimeSubsidy, nTimeValueValid, nTimePayeeValid, nTimeProcessSpecial, nTimeDashSpecific;
         std::string strError = "";
         int64_t nTime5_2 = GetTimeMicros();
 

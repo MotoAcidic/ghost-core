@@ -185,16 +185,17 @@ template<typename SpecialTxPayload>
 static void FundSpecialTx(CWallet* pwallet, CMutableTransaction& tx, const SpecialTxPayload& payload, const CTxDestination& fundDest)
 {
     assert(pwallet != nullptr);
-    LOCK2(cs_main, pwallet->cs_wallet);
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+    LOCK2(cs_main, mempool.cs);
+    LOCK(pwallet->cs_wallet);
 
     CTxDestination nodest = CNoDestination();
     if (fundDest == nodest) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No source of funds specified");
     }
 
-    CDataStream ds(SER_NETWORK, PROTOCOL_VERSION);
-    ds << payload;
-    tx.vExtraPayload.assign(ds.begin(), ds.end());
+    SetTxPayload(tx, payload);
 
     static CTxOut dummyTxOut(0, CScript() << OP_RETURN);
     std::vector<CRecipient> vecSend;
@@ -205,6 +206,7 @@ static void FundSpecialTx(CWallet* pwallet, CMutableTransaction& tx, const Speci
         tx.vout.emplace_back(dummyTxOut);
         dummyTxOutAdded = true;
     }
+
     for (const auto& txOut : tx.vout) {
         CRecipient recipient = {txOut.scriptPubKey, txOut.nValue, false};
         vecSend.push_back(recipient);
@@ -216,19 +218,18 @@ static void FundSpecialTx(CWallet* pwallet, CMutableTransaction& tx, const Speci
     std::vector<COutput> vecOutputs;
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
+
     pwallet->AvailableCoins(*locked_chain, vecOutputs);
 
     for (const auto& out : vecOutputs) {
         CTxDestination txDest;
-        if (ExtractDestination(out.tx->tx->vout[out.i].scriptPubKey, txDest) && txDest == fundDest) {
+        if (ExtractDestination(*out.tx->tx->vpout[out.i]->GetPScriptPubKey(), txDest) && txDest == fundDest) {
             coinControl.Select(COutPoint(out.tx->tx->GetHash(), out.i));
         }
     }
 
-    if (!coinControl.HasSelected()) {
+    if (!coinControl.HasSelected())
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No funds at specified address");
-    }
-
     CTransactionRef wtx;
     CAmount nFeeRequired;
     int nChangePosRet = -1;
@@ -434,8 +435,6 @@ UniValue protx_register(const JSONRPCRequest& request)
 
     size_t paramIdx = 1;
 
-    CAmount nMNCollateralRequired = 1000 * COIN;
-
     CMutableTransaction tx;
     tx.SetType(TXN_PROVIDER_REGISTER);
 
@@ -449,7 +448,7 @@ UniValue protx_register(const JSONRPCRequest& request)
         }
         CScript collateralScript = GetScriptForDestination(collateralAddress);
 
-        CTxOut collateralTxOut(nMNCollateralRequired, collateralScript);
+        CTxOut collateralTxOut(Params().GetConsensus().nMasternodeCollateral, collateralScript);
         tx.vout.emplace_back(collateralTxOut);
 
         paramIdx++;
@@ -516,7 +515,7 @@ UniValue protx_register(const JSONRPCRequest& request)
     if (isFundRegister) {
         uint32_t collateralIndex = (uint32_t) -1;
         for (uint32_t i = 0; i < tx.vout.size(); i++) {
-            if (tx.vout[i].nValue == nMNCollateralRequired) {
+            if (tx.vout[i].nValue == Params().GetConsensus().nMasternodeCollateral) {
                 collateralIndex = i;
                 break;
             }
@@ -666,7 +665,7 @@ UniValue protx_update_service(const JSONRPCRequest& request)
     if (request.params.size() >= 6) {
         CTxDestination feeSourceAddress = DecodeDestination(request.params[5].get_str());
         if (!IsValidDestination(feeSourceAddress))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Zentoshi address: ") + request.params[5].get_str());
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Ghost address: ") + request.params[5].get_str());
         feeSource = feeSourceAddress;
     } else {
         if (ptx.scriptOperatorPayout != CScript()) {

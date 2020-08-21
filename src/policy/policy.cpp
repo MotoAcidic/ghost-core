@@ -130,7 +130,7 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time
 
 bool IsStandardTx(const CTransaction& tx, bool permit_bare_multisig, const CFeeRate& dust_relay_fee, std::string& reason, int64_t time)
 {
-    if (!tx.IsGhostVersion() && (tx.nVersion > CTransaction::MAX_STANDARD_VERSION || tx.nVersion < 1)) {
+    if (!tx.IsGhostVersion() && !tx.IsEvoVersion() && (tx.nVersion > CTransaction::MAX_STANDARD_VERSION || tx.nVersion < 1)) {
         reason = "version";
         return false;
     }

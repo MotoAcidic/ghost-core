@@ -6,6 +6,7 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
+#include <amount.h>   //! CAmount
 #include <uint256.h>
 #include <limits>
 #include <map>
@@ -146,7 +147,7 @@ struct Params {
     int DIP0001Height;
     /** Block height at which DIP0003 becomes active */
     int DIP0003Height;
-    /** Block height at which DIP0003 becomes enforced */
+    /** Block height and hash at which DIP0003 becomes enforced */
     int DIP0003EnforcementHeight;
     uint256 DIP0003EnforcementHash;
     /** Block height at which CSV (BIP68, BIP112 and BIP113) becomes active */
@@ -158,6 +159,11 @@ struct Params {
     /** Don't warn about unknown BIP 9 activations below this height.
      * This prevents us from warning about the CSV and segwit activations. */
     int MinBIP9WarningHeight;
+
+    /** Require that keyIDOwner and keyIDVoting be unique (equiv. of SPORK_15_DETERMINISTIC_MNS_ENABLED) */
+    bool fUniqueKeys;
+    /** Required collateral amount for a masternode */
+    CAmount nMasternodeCollateral;
 
     /** Time at which OP_ISCOINSTAKE becomes active */
     int64_t OpIsCoinstakeTime;

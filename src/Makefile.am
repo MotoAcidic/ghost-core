@@ -25,6 +25,8 @@ BITCOIN_INCLUDES += -I$(srcdir)/secp256k1/include
 BITCOIN_INCLUDES += $(UNIVALUE_CFLAGS)
 BLS_LIBS=-lchiabls -lgmp
 
+BLS_LIBS=-lchiabls -lgmp
+
 LIBPARTICL_SERVER=libghost_server.a
 LIBPARTICL_COMMON=libghost_common.a
 LIBPARTICL_CONSENSUS=libghost_consensus.a
